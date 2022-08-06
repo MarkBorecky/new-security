@@ -1,8 +1,9 @@
 package pl.maro.newsecurity.security;
 
-import org.apache.commons.lang.StringUtils;
+import io.vavr.control.Option;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.util.StringUtils;
 import org.springframework.web.filter.GenericFilterBean;
 
 import javax.servlet.FilterChain;
@@ -15,7 +16,6 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-import static org.apache.commons.lang.StringUtils.*;
 import static org.springframework.util.StringUtils.hasText;
 
 public class JWTFilter extends GenericFilterBean {
@@ -34,17 +34,15 @@ public class JWTFilter extends GenericFilterBean {
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         var httpRequest = (HttpServletRequest) request;
         var jwt = resolveToken(httpRequest);
-        if (hasText(jwt) && this.tokenProvider.validateToken(jwt)) {
-            Authentication authentication = this.tokenProvider.getAuthentication(jwt);
+        Option.of(jwt).filter(StringUtils::hasText).filter(this.tokenProvider::validateToken)
+                .peek(x -> {
+            Authentication authentication = this.tokenProvider.getAuthentication(x);
             SecurityContextHolder.getContext().setAuthentication(authentication);
-        }
+        });
         chain.doFilter(request, response);
     }
 
     private String resolveToken(HttpServletRequest request) {
-        return Optional.ofNullable(request.getHeader(AUTHORIZATION_HEADER))
-                .filter(IS_BEARER)
-                .map(SUBSTRING_7)
-                .orElse(EMPTY);
+        return Optional.ofNullable(request.getHeader(AUTHORIZATION_HEADER)).filter(IS_BEARER).map(SUBSTRING_7).orElse("");
     }
 }

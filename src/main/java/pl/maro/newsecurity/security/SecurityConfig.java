@@ -2,26 +2,24 @@ package pl.maro.newsecurity.security;
 
 
 import org.springframework.context.annotation.Bean;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.filter.CorsFilter;
-import org.springframework.util.CollectionUtils;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
 
 import java.util.Arrays;
 import java.util.Collections;
 
+import static org.springframework.http.HttpMethod.*;
+import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 import static org.springframework.web.cors.CorsConfiguration.ALL;
-import static pl.maro.newsecurity.security.AuthoritiesConstants.*;
+import static pl.maro.newsecurity.security.AuthoritiesConstants.ADMIN;
 
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true)
@@ -41,13 +39,13 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedMethods(Arrays.asList(
-                HttpMethod.GET.name(),
-                HttpMethod.POST.name(),
-                HttpMethod.DELETE.name(),
-                HttpMethod.PUT.name(),
-                HttpMethod.HEAD.name(),
-                HttpMethod.POST.name(),
-                HttpMethod.OPTIONS.name()
+                GET.name(),
+                POST.name(),
+                DELETE.name(),
+                PUT.name(),
+                HEAD.name(),
+                POST.name(),
+                OPTIONS.name()
         ));
         config.setAllowedHeaders(Collections.singletonList(ALL));
         config.setAllowedOrigins(Collections.singletonList(ALL));
@@ -64,7 +62,7 @@ public class SecurityConfig {
                 .exceptionHandling()
                 .and()
                 .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .sessionCreationPolicy(STATELESS)
                 .and()
                 .authorizeRequests()
                 .antMatchers("/swagger-ui/**").permitAll()

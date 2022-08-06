@@ -1,6 +1,11 @@
 package pl.maro.newsecurity.security;
 
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtParser;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import io.vavr.control.Try;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,8 +15,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Component;
-
-import io.jsonwebtoken.*;
 
 import javax.crypto.SecretKey;
 import java.security.Key;
@@ -28,13 +31,15 @@ public class TokenProvider {
     private static final Logger log = LoggerFactory.getLogger(TokenProvider.class);
     private static final String AUTHORITIES_KEY = "auth";
     private final Key key;
-    private final String secret;
-    private long validTime = 1000 * 60 * 60;
+    private Long validTime;
 
     private final JwtParser jwtParser;
 
-    public TokenProvider(@Value("${secret}") String secret) {
-        this.secret = secret;
+    public TokenProvider(
+            @Value("${secret}") String secret,
+            @Value("${valid-time}") Long validTime
+    ) {
+        this.validTime = validTime;
         key = getKey(secret);
         jwtParser = getParser(key);
     }
@@ -66,19 +71,12 @@ public class TokenProvider {
     }
 
     public boolean validateToken(String jwt) {
-//        return Try.of(() -> jwtParser.parseClaimsJws(jwt))
-//                .map(claimsJws -> true)
-//                .getOrElseGet(e -> {
-//                    log.error("Token validation error {}", e.getMessage());
-//                    return false;
-//                });
-        try {
-            jwtParser.parseClaimsJws(jwt);
-
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
+        return Try.of(() -> jwtParser.parseClaimsJws(jwt))
+                .map(claimsJws -> true)
+                .getOrElseGet(e -> {
+                    log.error("Token validation error {}", e.getMessage());
+                    return false;
+                });
     }
 
     public Authentication getAuthentication(String token) {
@@ -91,7 +89,6 @@ public class TokenProvider {
                 .toList();
 
         User principal = new User(claims.getSubject(), "", authorities);
-
         return new UsernamePasswordAuthenticationToken(principal, token, authorities);
     }
 }

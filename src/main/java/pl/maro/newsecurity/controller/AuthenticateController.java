@@ -11,13 +11,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import pl.maro.newsecurity.security.Credentials;
-import pl.maro.newsecurity.security.JWTFilter;
 import pl.maro.newsecurity.security.JWTToken;
 import pl.maro.newsecurity.security.TokenProvider;
 
 import javax.validation.Valid;
 
-import static pl.maro.newsecurity.security.JWTFilter.*;
+import static pl.maro.newsecurity.security.JWTFilter.AUTHORIZATION_HEADER;
 
 @RestController
 @RequestMapping("/api")
